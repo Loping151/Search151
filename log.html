@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Display Log File Content</title>
+</head>
+<body>
+    <h1>Log File Content:</h1>
+    <div id="text-content">Loading...</div>
+
+    <script>
+        if (window.FileReader) {
+            const reader = new FileReader();
+            
+            fetch('query.log')
+                .then(response => response.blob())
+                .then(blob => {
+                    reader.readAsText(blob);
+                })
+                .catch(error => {
+                    console.error('Error fetching the log file:', error);
+                    document.getElementById('text-content').innerText = 'Failed to load content.';
+                });
+
+            reader.onload = function(event) {
+                document.getElementById('text-content').innerText = event.target.result;
+            };
+        } else {
+            document.getElementById('text-content').innerText = 'Your browser does not support FileReader.';
+        }
+    </script>
+    <a href="http://search.loping151.com/ui/index.html" style="text-decoration: none;">
+        <button type="button">Get Back</button>
+      </a>
+</body>
+</html>

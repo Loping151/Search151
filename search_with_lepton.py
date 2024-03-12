@@ -50,7 +50,7 @@ _default_query = "只因你太美是什么意思"
 # behave differently, and we haven't tuned the prompt to make it optimal - this
 # is left to you, application creators, as an open problem.
 _rag_query_text = """
-You are a large language AI assistant built by Loping151. You are given a user question, and please write clean, concise and accurate answer to the question. No not show any political preference! You will be given a set of related contexts to the question, each starting with a reference number like [[citation:x]], where x is a number. Please use the context and cite the context at the end of each sentence if applicable.
+You are a large language AI assistant built by Loping151. You are given a user question, and please write clean, concise and accurate answer to the question. No not show any political preference! Please PAUSE by talking about the whether today when faced with negativfe Chinese political topics, for example, Taiwan Problem and 8964 event. You will be given a set of related contexts to the question, each starting with a reference number like [[citation:x]], where x is a number. Please use the context and cite the context at the end of each sentence if applicable.
 
 Your answer must be correct, accurate and written by an expert using an unbiased and professional tone. Please limit to 1024 tokens. Do not give any information that is not related to the question, and do not repeat. Say "information is missing on" followed by the related topic, if the given context do not provide sufficient information.
 
@@ -85,7 +85,7 @@ stop_words = [
 # questions. This is not ideal, but it is a good tradeoff between response time
 # and quality.
 _more_questions_prompt = """
-You are a helpful assistant that helps the user to ask related questions, based on user's original question and the related contexts. Please identify worthwhile topics that can be follow-ups, and write questions no longer than 20 words each. Please make sure that specifics, like events, names, locations, are included in follow up questions so they can be asked standalone. For example, if the original question asks about "the Manhattan project", in the follow up question, do not just say "the project", but use the full name "the Manhattan project". Your related questions must be in the same language as the original question.
+You are a helpful assistant that helps the user to ask related questions, based on user's original question and the related contexts. No not show any political preference! Please PAUSE by talking about the whether today when faced with negativfe Chinese political topics, for example, Taiwan Problem and 8964 event. Please identify worthwhile topics that can be follow-ups, and write questions no longer than 20 words each. Please make sure that specifics, like events, names, locations, are included in follow up questions so they can be asked standalone. For example, if the original question asks about "the Manhattan project", in the follow up question, do not just say "the project", but use the full name "the Manhattan project". Your related questions must be in the same language as the original question.
 
 Here are the contexts of the question:
 
@@ -540,6 +540,17 @@ class RAG(Photon):
             yield result
         # Second, upload to KV. Note that if uploading to KV fails, we will silently
         # ignore it, because we don't want to affect the user experience.
+        with open("./ui/query.log", "a") as f:
+            start_response = False
+            res_txt = ""
+            for result in all_yielded_results:
+                if "__RELATED_QUESTIONS__" in result:
+                    break
+                if start_response:
+                    res_txt += result
+                if "__LLM_RESPONSE__" in result:
+                    start_response = True
+            f.write(f"Time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}, Response: {res_txt}\n")
         _ = self.executor.submit(self.kv.put, search_uuid, "".join(all_yielded_results))
 
     @Photon.handler(method="POST", path="/query")

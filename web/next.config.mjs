@@ -3,23 +3,23 @@ export default (phase, { defaultConfig }) => {
   /**
    * @type {import("next").NextConfig}
    */
-  if (env === "production") {
+  // if (env === "production") {
     return {
       output: "export",
       assetPrefix: "/ui/",
       basePath: "/ui",
       distDir: "../ui"
     };
-  } else {
-    return {
-      async rewrites() {
-        return [
-          {
-            source: "/query",
-            destination: "http://localhost:8080/query" // Proxy to Backend
-          }
-        ];
-      }
-    };
-  }
+  // } else {
+  //   return {
+  //     async rewrites() {
+  //       return [
+  //         {
+  //           source: "/query",
+  //           destination: "http://localhost:8080/query" // Proxy to Backend
+  //         }
+  //       ];
+  //     }
+  //   };
+  // }
 }
