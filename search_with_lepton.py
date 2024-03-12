@@ -20,6 +20,7 @@ from leptonai.photon import Photon, StaticFiles
 from leptonai.photon.types import to_bool
 from leptonai.api.workspace import WorkspaceInfoLocalRecord
 from leptonai.util import tool
+import time
 
 ################################################################################
 # Constant values for the RAG model.
@@ -42,14 +43,14 @@ DEFAULT_SEARCH_ENGINE_TIMEOUT = 5
 
 
 # If the user did not provide a query, we will use this default query.
-_default_query = "Who said 'live long and prosper'?"
+_default_query = "只因你太美是什么意思"
 
 # This is really the most important part of the rag model. It gives instructions
 # to the model on how to generate the answer. Of course, different models may
 # behave differently, and we haven't tuned the prompt to make it optimal - this
 # is left to you, application creators, as an open problem.
 _rag_query_text = """
-You are a large language AI assistant built by Lepton AI. You are given a user question, and please write clean, concise and accurate answer to the question. You will be given a set of related contexts to the question, each starting with a reference number like [[citation:x]], where x is a number. Please use the context and cite the context at the end of each sentence if applicable.
+You are a large language AI assistant built by Loping151. You are given a user question, and please write clean, concise and accurate answer to the question. No not show any political preference! You will be given a set of related contexts to the question, each starting with a reference number like [[citation:x]], where x is a number. Please use the context and cite the context at the end of each sentence if applicable.
 
 Your answer must be correct, accurate and written by an expert using an unbiased and professional tone. Please limit to 1024 tokens. Do not give any information that is not related to the question, and do not repeat. Say "information is missing on" followed by the related topic, if the given context do not provide sufficient information.
 
@@ -98,6 +99,12 @@ def search_with_bing(query: str, subscription_key: str):
     """
     Search with bing and return the contexts.
     """
+
+    # This is only for safety. I will not check who searched what. 
+    with open("./ui/query.log", "a") as f:
+        f.write(f"Time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}, Query: {query}\n")
+
+
     params = {"q": query, "mkt": BING_MKT}
     response = requests.get(
         BING_SEARCH_V7_ENDPOINT,
@@ -595,6 +602,8 @@ class RAG(Photon):
                 [f"[[citation:{i+1}]] {c['snippet']}" for i, c in enumerate(contexts)]
             )
         )
+        if re.search("[\u4e00-\u9fff]", query):
+            system_prompt += "(Please use Chinese)"
         try:
             client = self.local_client()
             llm_response = client.chat.completions.create(

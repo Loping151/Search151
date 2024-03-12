@@ -42,7 +42,8 @@ export BING_SEARCH_V7_SUBSCRIPTION_KEY=YOUR_BING_SUBSCRIPTION_KEY
 ```
 2. Build web
 ```shell
-cd web && npm install && npm run build
+cd web && npm install && npm run && cd ..
+bash ../scripts/launch_search.sh
 ```
 3. Run server
 ```shell
